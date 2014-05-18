@@ -17,6 +17,7 @@ public abstract class AbstractRedisHandler extends JedisPubSub {
                 }
             }
         };
+        t.setName("RedisHandlerThread-" + channelName);
         t.setDaemon(true);
         t.start();
 	}

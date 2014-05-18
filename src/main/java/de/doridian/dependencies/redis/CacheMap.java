@@ -60,6 +60,7 @@ public class CacheMap implements Map<String, String> {
                 }
             }
         };
+        cleanupThread.setName("RedisCacheMapCleanupThread-" + this.name);
         cleanupThread.setDaemon(true);
         cleanupThread.start();
 
