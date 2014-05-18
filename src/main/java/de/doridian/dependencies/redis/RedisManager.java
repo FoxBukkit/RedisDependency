@@ -197,6 +197,22 @@ public class RedisManager {
         }
     }
 
+    public static void lpush(String key, String... strings) {
+        Jedis jedis = null;
+        while(true) {
+            try {
+                jedis = jedisPool.getResource();
+                jedis.lpush(key, strings);
+                jedisPool.returnResource(jedis);
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+    }
+
     public static class RedisMap implements Map<String, String> {
         private final String name;
         public RedisMap(String name) {
