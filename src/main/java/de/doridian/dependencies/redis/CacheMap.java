@@ -8,11 +8,13 @@ public class CacheMap implements Map<String, String> {
     private final long expiryTime;
     private final String name;
 
+    private final RedisManager redisManager;
+
     private final JedisPubSubListener jedisPubSubListener;
 
     private class JedisPubSubListener extends AbstractRedisHandler {
         private JedisPubSubListener(String channelName) {
-            super(channelName);
+            super(redisManager, channelName);
         }
 
         @Override
@@ -34,7 +36,8 @@ public class CacheMap implements Map<String, String> {
         }
     }
 
-    public CacheMap(final long expiryTime, final String _name, final Map<String, String> parentMap) {
+    public CacheMap(final RedisManager redisManager, final long expiryTime, final String _name, final Map<String, String> parentMap) {
+        this.redisManager = redisManager;
         this.expiryTime = expiryTime;
         this.parentMap = parentMap;
         this.name = "cachemap_changes:" + _name;
@@ -151,7 +154,7 @@ public class CacheMap implements Map<String, String> {
         synchronized (internalMap) {
             internalMap.put(key, new CacheEntry(value));
         }
-        RedisManager.publish(name, key + '\0' + value);
+        redisManager.publish(name, key + '\0' + value);
         synchronized (parentMap) {
             return parentMap.put(key, value);
         }
@@ -162,7 +165,7 @@ public class CacheMap implements Map<String, String> {
         synchronized (internalMap) {
             internalMap.remove(key);
         }
-        RedisManager.publish(name, key.toString());
+        redisManager.publish(name, key.toString());
         synchronized (parentMap) {
             return parentMap.remove(key);
         }
@@ -180,7 +183,7 @@ public class CacheMap implements Map<String, String> {
         synchronized (internalMap) {
             internalMap.clear();
         }
-        RedisManager.publish(name, "\1");
+        redisManager.publish(name, "\1");
         synchronized (parentMap) {
             parentMap.clear();
         }

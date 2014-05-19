@@ -3,14 +3,14 @@ package de.doridian.dependencies.redis;
 import redis.clients.jedis.JedisPubSub;
 
 public abstract class AbstractRedisHandler extends JedisPubSub {
-	protected AbstractRedisHandler(final String channelName) {
+	protected AbstractRedisHandler(final RedisManager redisManager, final String channelName) {
         final JedisPubSub _this = this;
         Thread t = new Thread() {
             public void run() {
                 while(true) {
                     try {
                         Thread.sleep(1000);
-                        RedisManager.subscribe(channelName, _this);
+                        redisManager.subscribe(channelName, _this);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

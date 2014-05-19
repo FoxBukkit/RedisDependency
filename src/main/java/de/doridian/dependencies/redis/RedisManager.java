@@ -9,18 +9,18 @@ import redis.clients.jedis.JedisPubSub;
 import java.util.*;
 
 public class RedisManager {
-    private static JedisPool jedisPool;
+    private final JedisPool jedisPool;
 
-    private static String REDIS_PASSWORD;
-    private static int REDIS_DB;
+    private final String REDIS_PASSWORD;
+    private final int REDIS_DB;
 
-    public static void initialize(Configuration configuration) {
+    public RedisManager(Configuration configuration) {
         REDIS_PASSWORD = configuration.getValue("redis-pw", "password");
         REDIS_DB = Integer.parseInt(configuration.getValue("redis-db", "1"));
         jedisPool = createPool(configuration.getValue("redis-host", "localhost"));
     }
 
-    private static JedisPool createPool(String host) {
+    private JedisPool createPool(String host) {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
         jedisPoolConfig.setMaxTotal(500);
         jedisPoolConfig.setMaxIdle(100);
@@ -31,7 +31,7 @@ public class RedisManager {
         return new JedisPool(jedisPoolConfig, host, 6379, 1000, REDIS_PASSWORD, REDIS_DB);
     }
 
-    public static long hlen(String key) {
+    public long hlen(String key) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -54,7 +54,7 @@ public class RedisManager {
         }
     }
 
-    public static void del(String key) {
+    public void del(String key) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -70,7 +70,7 @@ public class RedisManager {
         }
     }
 
-    public static List<String> lrange(String key, long start, long stop) {
+    public List<String> lrange(String key, long start, long stop) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -86,7 +86,7 @@ public class RedisManager {
         }
     }
 
-    public static boolean hexists(String key, String index) {
+    public boolean hexists(String key, String index) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -102,7 +102,7 @@ public class RedisManager {
         }
     }
 
-    public static String hget(String key, String index) {
+    public String hget(String key, String index) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -118,7 +118,7 @@ public class RedisManager {
         }
     }
 
-    public static void hset(String key, String index, String value) {
+    public void hset(String key, String index, String value) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -134,7 +134,7 @@ public class RedisManager {
         }
     }
 
-    public static void hdel(String key, String index) {
+    public void hdel(String key, String index) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -150,7 +150,7 @@ public class RedisManager {
         }
     }
 
-    public static Set<String> hkeys(String key) {
+    public Set<String> hkeys(String key) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -166,7 +166,7 @@ public class RedisManager {
         }
     }
 
-    public static List<String> hvals(String key) {
+    public List<String> hvals(String key) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -182,7 +182,7 @@ public class RedisManager {
         }
     }
 
-    public static Map<String, String> hgetAll(String key) {
+    public Map<String, String> hgetAll(String key) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -198,7 +198,7 @@ public class RedisManager {
         }
     }
 
-    public static void subscribe(String key, JedisPubSub listener) throws Exception {
+    public void subscribe(String key, JedisPubSub listener) throws Exception {
         if(jedisPool == null)
             return;
         Jedis jedis = null;
@@ -213,7 +213,7 @@ public class RedisManager {
         }
     }
 
-    public static void publish(String key, String value) {
+    public void publish(String key, String value) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -229,7 +229,7 @@ public class RedisManager {
         }
     }
 
-    public static void lpush(String key, String... strings) {
+    public void lpush(String key, String... strings) {
         Jedis jedis = null;
         while(true) {
             try {
@@ -245,7 +245,7 @@ public class RedisManager {
         }
     }
 
-    public static class RedisMap implements Map<String, String> {
+    public class RedisMap implements Map<String, String> {
         private final String name;
         public RedisMap(String name) {
             this.name = name;
@@ -327,13 +327,13 @@ public class RedisManager {
         }
     }
 
-    public static Map<String,String> createRedisMap(String name) {
+    public Map<String,String> createRedisMap(String name) {
         return new RedisMap(name);
     }
-    public static Map<String,String> createCachedRedisMap(String name) {
+    public Map<String,String> createCachedRedisMap(String name) {
         return createCachedRedisMap(name, 10000L);
     }
-    public static Map<String,String> createCachedRedisMap(String name, long expiry) {
-        return new CacheMap(expiry, name, new RedisMap(name));
+    public Map<String,String> createCachedRedisMap(String name, long expiry) {
+        return new CacheMap(this, expiry, name, new RedisMap(name));
     }
 }
