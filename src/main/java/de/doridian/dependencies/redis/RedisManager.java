@@ -70,6 +70,22 @@ public class RedisManager {
         }
     }
 
+    public static List<String> lrange(String key, long start, long stop) {
+        Jedis jedis = null;
+        while(true) {
+            try {
+                jedis = jedisPool.getResource();
+                List<String> range = jedis.lrange(key, start, stop);
+                jedisPool.returnResource(jedis);
+                return range;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+    }
+
     public static boolean hexists(String key, String index) {
         Jedis jedis = null;
         while(true) {
