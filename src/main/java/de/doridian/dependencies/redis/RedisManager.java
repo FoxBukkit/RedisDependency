@@ -54,6 +54,21 @@ public class RedisManager {
         }
     }
 
+    public static void del(String key) {
+        Jedis jedis = null;
+        while(true) {
+            try {
+                jedis = jedisPool.getResource();
+                jedis.del(key);
+                jedisPool.returnResource(jedis);
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+    }
+
     public static boolean hexists(String key, String index) {
         Jedis jedis = null;
         while(true) {
