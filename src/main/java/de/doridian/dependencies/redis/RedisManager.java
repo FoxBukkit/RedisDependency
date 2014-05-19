@@ -61,6 +61,7 @@ public class RedisManager {
                 jedis = jedisPool.getResource();
                 jedis.del(key);
                 jedisPool.returnResource(jedis);
+                return;
             } catch (Exception e) {
                 e.printStackTrace();
                 if(jedis != null)
