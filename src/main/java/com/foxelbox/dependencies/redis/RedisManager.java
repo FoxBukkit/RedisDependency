@@ -14,9 +14,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with RedisDependency.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.doridian.dependencies.redis;
+package com.foxelbox.dependencies.redis;
 
-import de.doridian.dependencies.config.Configuration;
+import com.foxelbox.dependencies.config.Configuration;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
