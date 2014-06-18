@@ -16,26 +16,53 @@
  */
 package com.foxelbox.dependencies.redis;
 
-import redis.clients.jedis.JedisPubSub;
+import java.util.List;
 
-public abstract class AbstractRedisHandler extends JedisPubSub {
-	protected AbstractRedisHandler(final RedisManager redisManager, final String channelName) {
-        final JedisPubSub _this = this;
-        Thread t = new Thread() {
-            public void run() {
-                while(true) {
-                    try {
-                        Thread.sleep(1000);
-                        redisManager.subscribe(channelName, _this);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
+    public enum RedisHandlerType {
+        LIST, PUBSUB, BOTH
+    }
+
+    protected AbstractRedisHandler(final RedisManager redisManager, final String channelName) {
+        this(redisManager, RedisHandlerType.PUBSUB, channelName);
+    }
+
+	protected AbstractRedisHandler(final RedisManager redisManager, final RedisHandlerType type, final String channelName) {
+        if(type == RedisHandlerType.BOTH || type == RedisHandlerType.PUBSUB) {
+            Thread t = new Thread() {
+                public void run() {
+                    while (true) {
+                        try {
+                            Thread.sleep(1000);
+                            redisManager.subscribe(channelName, AbstractRedisHandler.this);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
-        };
-        t.setName("RedisHandlerThread-" + channelName);
-        t.setDaemon(true);
-        t.start();
+            };
+            t.setName("RedisHandlerThread-subscribe-" + channelName);
+            t.setDaemon(true);
+            t.start();
+        }
+        if(type == RedisHandlerType.BOTH || type == RedisHandlerType.LIST) {
+            Thread t = new Thread() {
+                public void run() {
+                    while (true) {
+                        try {
+                            List<String> ret = redisManager.brpop(channelName);
+                            if(ret != null)
+                                onMessage(ret.get(0), ret.get(1));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            };
+            t.setName("RedisHandlerThread-list-" + channelName);
+            t.setDaemon(true);
+            t.start();
+        }
 	}
 
     protected abstract void onMessage(final String message) throws Exception;
@@ -48,10 +75,4 @@ public abstract class AbstractRedisHandler extends JedisPubSub {
 			e.printStackTrace();
 		}
 	}
-
-    @Override public final void onPMessage(String pattern, String channel, String message) { }
-    @Override public final void onSubscribe(String channel, int subscribedChannels) { }
-    @Override public final void onUnsubscribe(String channel, int subscribedChannels) { }
-    @Override public final void onPUnsubscribe(String pattern, int subscribedChannels) { }
-    @Override public final void onPSubscribe(String pattern, int subscribedChannels) { }
 }

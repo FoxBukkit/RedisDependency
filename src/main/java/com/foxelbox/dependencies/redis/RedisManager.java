@@ -70,6 +70,22 @@ public class RedisManager {
         }
     }
 
+    public List<String> brpop(String key) {
+        Jedis jedis = null;
+        while(true) {
+            try {
+                jedis = jedisPool.getResource();
+                List<String> ret = jedis.brpop(key);
+                jedisPool.returnResource(jedis);
+                return ret;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+    }
+
     public void del(String key) {
         Jedis jedis = null;
         while(true) {
