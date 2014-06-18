@@ -50,7 +50,7 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
                 public void run() {
                     while (true) {
                         try {
-                            List<String> ret = redisManager.brpop(channelName);
+                            List<String> ret = redisManager.brpop(0, channelName);
                             if(ret != null)
                                 onMessage(ret.get(0), ret.get(1));
                         } catch (Exception e) {

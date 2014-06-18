@@ -70,12 +70,12 @@ public class RedisManager {
         }
     }
 
-    public List<String> brpop(String key) {
+    public List<String> brpop(int timeout, String... key) {
         Jedis jedis = null;
         while(true) {
             try {
                 jedis = jedisPool.getResource();
-                List<String> ret = jedis.brpop(key);
+                List<String> ret = jedis.brpop(timeout, key);
                 jedisPool.returnResource(jedis);
                 return ret;
             } catch (Exception e) {
