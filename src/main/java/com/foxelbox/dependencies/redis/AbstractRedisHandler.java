@@ -29,7 +29,7 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
 
 	protected AbstractRedisHandler(final RedisManager redisManager, final RedisHandlerType type, final String channelName) {
         if(type == RedisHandlerType.BOTH || type == RedisHandlerType.PUBSUB) {
-            Thread t = new Thread() {
+            Thread t = redisManager.threadCreator.createThread(new Runnable() {
                 public void run() {
                     while (true) {
                         try {
@@ -40,13 +40,13 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
                         }
                     }
                 }
-            };
+            });
             t.setName("RedisHandlerThread-subscribe-" + channelName);
             t.setDaemon(true);
             t.start();
         }
         if(type == RedisHandlerType.BOTH || type == RedisHandlerType.LIST) {
-            Thread t = new Thread() {
+            Thread t = redisManager.threadCreator.createThread(new Runnable() {
                 public void run() {
                     while (true) {
                         try {
@@ -58,7 +58,7 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
                         }
                     }
                 }
-            };
+            });
             t.setName("RedisHandlerThread-list-" + channelName);
             t.setDaemon(true);
             t.start();

@@ -56,7 +56,7 @@ public class CacheMap implements Map<String, String> {
         this.parentMap = parentMap;
         this.name = "cachemap_changes:" + _name;
 
-        Thread cleanupThread = new Thread() {
+        Thread cleanupThread = redisManager.threadCreator.createThread(new Runnable() {
             @Override
             public void run() {
                 while(true) {
@@ -76,7 +76,7 @@ public class CacheMap implements Map<String, String> {
                     }
                 }
             }
-        };
+        });
         cleanupThread.setName("RedisCacheMapCleanupThread-" + this.name);
         cleanupThread.setDaemon(true);
         cleanupThread.start();

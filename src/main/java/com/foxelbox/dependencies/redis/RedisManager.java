@@ -17,6 +17,7 @@
 package com.foxelbox.dependencies.redis;
 
 import com.foxelbox.dependencies.config.Configuration;
+import com.foxelbox.dependencies.threading.IThreadCreator;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -30,10 +31,13 @@ public class RedisManager {
     private final String REDIS_PASSWORD;
     private final int REDIS_DB;
 
-    public RedisManager(Configuration configuration) {
+	final IThreadCreator threadCreator;
+
+    public RedisManager(IThreadCreator threadCreator, Configuration configuration) {
         REDIS_PASSWORD = configuration.getValue("redis-pw", "password");
         REDIS_DB = Integer.parseInt(configuration.getValue("redis-db", "1"));
         jedisPool = createPool(configuration.getValue("redis-host", "localhost"));
+		this.threadCreator = threadCreator;
     }
 
     private JedisPool createPool(String host) {
