@@ -26,29 +26,38 @@ import redis.clients.jedis.JedisPubSub;
 import java.util.*;
 
 public class RedisManager {
-    private final JedisPool jedisPool;
+    private JedisPool jedisPool;
 
     private final String REDIS_PASSWORD;
     private final int REDIS_DB;
 
 	final IThreadCreator threadCreator;
 
-    public RedisManager(IThreadCreator threadCreator, Configuration configuration) {
+    public RedisManager(IThreadCreator _threadCreator, Configuration configuration) {
+		threadCreator = _threadCreator;
         REDIS_PASSWORD = configuration.getValue("redis-pw", "password");
         REDIS_DB = Integer.parseInt(configuration.getValue("redis-db", "1"));
-        jedisPool = createPool(configuration.getValue("redis-host", "localhost"));
-		this.threadCreator = threadCreator;
+        createPool(configuration.getValue("redis-host", "localhost"));
     }
 
-    private JedisPool createPool(String host) {
-        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-        jedisPoolConfig.setMaxTotal(500);
-        jedisPoolConfig.setMaxIdle(100);
-        jedisPoolConfig.setMaxWaitMillis(1000);
-        jedisPoolConfig.setTestOnBorrow(true);
-        jedisPoolConfig.setTestOnReturn(true);
-        jedisPoolConfig.setTestWhileIdle(true);
-        return new JedisPool(jedisPoolConfig, host, 6379, 1000, REDIS_PASSWORD, REDIS_DB);
+    private void createPool(final String host) {
+		Thread t = threadCreator.createThread(new Runnable() {
+			@Override
+			public void run() {
+				JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+				jedisPoolConfig.setMaxTotal(500);
+				jedisPoolConfig.setMaxIdle(100);
+				jedisPoolConfig.setMaxWaitMillis(1000);
+				jedisPoolConfig.setTestOnBorrow(true);
+				jedisPoolConfig.setTestOnReturn(true);
+				jedisPoolConfig.setTestWhileIdle(true);
+				jedisPool = new JedisPool(jedisPoolConfig, host, 6379, 1000, REDIS_PASSWORD, REDIS_DB);
+			}
+		});
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) { }
     }
 
     public long hlen(String key) {
