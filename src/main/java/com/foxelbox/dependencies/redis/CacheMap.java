@@ -26,6 +26,38 @@ public class CacheMap implements Map<String, String> {
 
     private final JedisPubSubListener jedisPubSubListener;
 
+    private final Object onChangeLock = new Object();
+    private Set<OnChangeHook> onChangeHooks = null;
+
+    private void publishChange(String key, String value) {
+        synchronized (onChangeLock) {
+            if (onChangeHooks == null)
+                return;
+            for (OnChangeHook onChangeHook : onChangeHooks)
+                onChangeHook.onEntryChanged(key, value);
+        }
+    }
+
+    public CacheMap addOnChangeHook(OnChangeHook hook) {
+        synchronized (onChangeLock) {
+            if(onChangeHooks == null)
+                onChangeHooks = new HashSet<>();
+            onChangeHooks.add(hook);
+        }
+
+        return this;
+    }
+
+    public CacheMap removeOnChangeHook(OnChangeHook hook) {
+        synchronized (onChangeLock) {
+            onChangeHooks.remove(hook);
+            if(onChangeHooks.isEmpty())
+                onChangeHooks = null;
+        }
+
+        return this;
+    }
+
     private class JedisPubSubListener extends AbstractRedisHandler {
         private JedisPubSubListener(String channelName) {
             super(redisManager, channelName);
@@ -37,13 +69,16 @@ public class CacheMap implements Map<String, String> {
             synchronized (internalMap) {
                 switch (msgSplit.length) {
                     case 1:
-                        if(msgSplit[0].charAt(0) == '\1')
+                        if(msgSplit[0].charAt(0) == '\1') {
                             internalMap.clear();
-                        else
+                        } else {
                             internalMap.remove(msgSplit[0]);
+                            publishChange(msgSplit[0], null);
+                        }
                         break;
                     case 2:
                         internalMap.put(msgSplit[0], new CacheEntry(msgSplit[1]));
+                        publishChange(msgSplit[0], msgSplit[1]);
                         break;
                 }
             }
@@ -222,5 +257,14 @@ public class CacheMap implements Map<String, String> {
         synchronized (parentMap) {
             return parentMap.entrySet();
         }
+    }
+
+    public interface OnChangeHook {
+        /**
+         * Entry change delegate functional interface
+         * @param key Key of changed entry
+         * @param value Value of changed entry (null if removed)
+         */
+        public void onEntryChanged(String key, String value);
     }
 }
