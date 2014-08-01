@@ -372,13 +372,13 @@ public class RedisManager {
         }
     }
 
-    public Map<String,String> createRedisMap(String name) {
+    public RedisMap createRedisMap(String name) {
         return new RedisMap(name);
     }
-    public Map<String,String> createCachedRedisMap(String name) {
+    public CacheMap createCachedRedisMap(String name) {
         return createCachedRedisMap(name, 10000L);
     }
-    public Map<String,String> createCachedRedisMap(String name, long expiry) {
+    public CacheMap createCachedRedisMap(String name, long expiry) {
         return new CacheMap(this, expiry, name, new RedisMap(name));
     }
 }
