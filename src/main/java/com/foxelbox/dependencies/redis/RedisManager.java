@@ -44,8 +44,10 @@ public class RedisManager {
 
     public void stop() {
         running = false;
-        jedisPool.destroy();
-        jedisPool = null;
+        if(jedisPool != null) {
+            jedisPool.destroy();
+            jedisPool = null;
+        }
     }
 
     private void createPool(final String host) {
