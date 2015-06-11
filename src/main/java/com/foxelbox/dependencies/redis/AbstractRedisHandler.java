@@ -50,6 +50,7 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
             t.setName("RedisHandlerThread-subscribe-" + channelName);
             t.setDaemon(true);
             t.start();
+            threads.add(t);
         }
         if(type == RedisHandlerType.BOTH || type == RedisHandlerType.LIST) {
             Thread t = redisManager.threadCreator.createThread(new Runnable() {
@@ -68,12 +69,21 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
             t.setName("RedisHandlerThread-list-" + channelName);
             t.setDaemon(true);
             t.start();
+            threads.add(t);
         }
 	}
 
     public void stop() {
         running = false;
         redisManager.stop();
+        for(Thread t : threads) {
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        threads.clear();
     }
 
     protected abstract void onMessage(final String message) throws Exception;
