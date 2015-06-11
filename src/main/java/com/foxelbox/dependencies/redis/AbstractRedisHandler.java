@@ -21,7 +21,6 @@ import java.util.List;
 
 public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
     private final ArrayList<Thread> threads = new ArrayList<>();
-    private boolean running = true;
     private final RedisManager redisManager;
 
     public enum RedisHandlerType {
@@ -37,10 +36,12 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
         if(type == RedisHandlerType.BOTH || type == RedisHandlerType.PUBSUB) {
             Thread t = redisManager.threadCreator.createThread(new Runnable() {
                 public void run() {
-                    while (running) {
+                    while (redisManager.running) {
                         try {
                             Thread.sleep(1000);
                             redisManager.subscribe(channelName, AbstractRedisHandler.this);
+                        } catch (RedisManager.PoolClosedException e) {
+                            return;
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -50,16 +51,18 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
             t.setName("RedisHandlerThread-subscribe-" + channelName);
             t.setDaemon(true);
             t.start();
-            threads.add(t);
+            redisManager.addThread(t);
         }
         if(type == RedisHandlerType.BOTH || type == RedisHandlerType.LIST) {
             Thread t = redisManager.threadCreator.createThread(new Runnable() {
                 public void run() {
-                    while (running) {
+                    while (redisManager.running) {
                         try {
                             List<String> ret = redisManager.brpop(0, channelName);
                             if(ret != null)
                                 onMessage(ret.get(0), ret.get(1));
+                        } catch (RedisManager.PoolClosedException e) {
+                            return;
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -69,22 +72,9 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
             t.setName("RedisHandlerThread-list-" + channelName);
             t.setDaemon(true);
             t.start();
-            threads.add(t);
+            redisManager.addThread(t);
         }
 	}
-
-    public void stop() {
-        running = false;
-        redisManager.stop();
-        for(Thread t : threads) {
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        threads.clear();
-    }
 
     protected abstract void onMessage(final String message) throws Exception;
 
