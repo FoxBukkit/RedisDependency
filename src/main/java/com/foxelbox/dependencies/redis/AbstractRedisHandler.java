@@ -16,9 +16,14 @@
  */
 package com.foxelbox.dependencies.redis;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
+    private final ArrayList<Thread> threads = new ArrayList<>();
+    private boolean running = true;
+    private final RedisManager redisManager;
+
     public enum RedisHandlerType {
         LIST, PUBSUB, BOTH
     }
@@ -28,10 +33,11 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
     }
 
 	protected AbstractRedisHandler(final RedisManager redisManager, final RedisHandlerType type, final String channelName) {
+        this.redisManager = redisManager;
         if(type == RedisHandlerType.BOTH || type == RedisHandlerType.PUBSUB) {
             Thread t = redisManager.threadCreator.createThread(new Runnable() {
                 public void run() {
-                    while (true) {
+                    while (running) {
                         try {
                             Thread.sleep(1000);
                             redisManager.subscribe(channelName, AbstractRedisHandler.this);
@@ -48,7 +54,7 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
         if(type == RedisHandlerType.BOTH || type == RedisHandlerType.LIST) {
             Thread t = redisManager.threadCreator.createThread(new Runnable() {
                 public void run() {
-                    while (true) {
+                    while (running) {
                         try {
                             List<String> ret = redisManager.brpop(0, channelName);
                             if(ret != null)
@@ -64,6 +70,11 @@ public abstract class AbstractRedisHandler extends AbstractJedisPubSub {
             t.start();
         }
 	}
+
+    public void stop() {
+        running = false;
+        redisManager.stop();
+    }
 
     protected abstract void onMessage(final String message) throws Exception;
 

@@ -31,6 +31,8 @@ public class RedisManager {
     private final String REDIS_PASSWORD;
     private final int REDIS_DB;
 
+    private boolean running = true;
+
 	final IThreadCreator threadCreator;
 
     public RedisManager(IThreadCreator _threadCreator, Configuration configuration) {
@@ -38,6 +40,12 @@ public class RedisManager {
         REDIS_PASSWORD = configuration.getValue("redis-pw", "password");
         REDIS_DB = Integer.parseInt(configuration.getValue("redis-db", "1"));
         createPool(configuration.getValue("redis-host", "localhost"));
+    }
+
+    public void stop() {
+        running = false;
+        jedisPool.destroy();
+        jedisPool = null;
     }
 
     private void createPool(final String host) {
@@ -62,7 +70,7 @@ public class RedisManager {
 
     public long hlen(String key) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
 
@@ -81,11 +89,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public List<String> brpop(int timeout, String... key) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 List<String> ret = jedis.brpop(timeout, key);
@@ -97,11 +106,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public void del(String key) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 jedis.del(key);
@@ -113,11 +123,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public List<String> lrange(String key, long start, long stop) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 List<String> range = jedis.lrange(key, start, stop);
@@ -129,11 +140,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public boolean hexists(String key, String index) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 boolean exists = jedis.hexists(key, index);
@@ -145,11 +157,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public String hget(String key, String index) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 String value = jedis.hget(key, index);
@@ -161,11 +174,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public void hset(String key, String index, String value) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 jedis.hset(key, index, value);
@@ -177,11 +191,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public void hdel(String key, String index) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 jedis.hdel(key, index);
@@ -193,11 +208,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public Set<String> hkeys(String key) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 Set<String> keys = jedis.hkeys(key);
@@ -209,11 +225,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public List<String> hvals(String key) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 List<String> values = jedis.hvals(key);
@@ -225,11 +242,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public Map<String, String> hgetAll(String key) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 Map<String, String> values = jedis.hgetAll(key);
@@ -241,6 +259,7 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public void subscribe(String key, JedisPubSub listener) throws Exception {
@@ -256,11 +275,12 @@ public class RedisManager {
                 jedisPool.returnBrokenResource(jedis);
             throw e;
         }
+        throw new RuntimeException("closed");
     }
 
     public void publish(String key, String value) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 jedis.publish(key, value);
@@ -272,11 +292,12 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public void lpush(String key, String... strings) {
         Jedis jedis = null;
-        while(true) {
+        while(running) {
             try {
                 jedis = jedisPool.getResource();
                 jedis.lpush(key, strings);
@@ -288,6 +309,7 @@ public class RedisManager {
                     jedisPool.returnBrokenResource(jedis);
             }
         }
+        throw new RuntimeException("closed");
     }
 
     public class RedisMap implements Map<String, String> {
