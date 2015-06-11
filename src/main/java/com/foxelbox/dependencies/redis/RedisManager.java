@@ -26,6 +26,8 @@ import redis.clients.jedis.JedisPubSub;
 import java.util.*;
 
 public class RedisManager {
+    private final ArrayList<Thread> threads = new ArrayList<>();
+    private final ArrayList<Jedis> subscriptions = new ArrayList<>();
     private JedisPool jedisPool;
 
     private final String REDIS_PASSWORD;
@@ -33,7 +35,15 @@ public class RedisManager {
 
     private boolean running = true;
 
-	final IThreadCreator threadCreator;
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void addThread(Thread t) {
+        threads.add(t);
+    }
+
+    final IThreadCreator threadCreator;
 
     public RedisManager(IThreadCreator _threadCreator, Configuration configuration) {
 		threadCreator = _threadCreator;
@@ -48,6 +58,22 @@ public class RedisManager {
             jedisPool.destroy();
             jedisPool = null;
         }
+        for(Jedis jedis : subscriptions) {
+            try {
+                jedis.disconnect();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        subscriptions.clear();
+        for(Thread t : threads) {
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        threads.clear();
     }
 
     private void createPool(final String host) {
@@ -270,12 +296,16 @@ public class RedisManager {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            subscriptions.add(jedis);
             jedis.subscribe(listener, key);
             jedisPool.returnBrokenResource(jedis);
         } catch (Exception e) {
             if(jedis != null)
                 jedisPool.returnBrokenResource(jedis);
             throw e;
+        } finally {
+            if(jedis != null)
+                subscriptions.remove(jedis);
         }
         throw new RuntimeException("closed");
     }

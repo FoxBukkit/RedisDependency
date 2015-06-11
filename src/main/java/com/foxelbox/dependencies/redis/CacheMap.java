@@ -94,7 +94,7 @@ public class CacheMap implements Map<String, String> {
         Thread cleanupThread = redisManager.threadCreator.createThread(new Runnable() {
             @Override
             public void run() {
-                while(true) {
+                while(redisManager.isRunning()) {
                     try {
                         Thread.sleep(expiryTime / 2L);
                         final long currentTime = System.currentTimeMillis();
@@ -115,6 +115,7 @@ public class CacheMap implements Map<String, String> {
         cleanupThread.setName("RedisCacheMapCleanupThread-" + this.name);
         cleanupThread.setDaemon(true);
         cleanupThread.start();
+        redisManager.addThread(cleanupThread);
 
         this.jedisPubSubListener = new JedisPubSubListener(this.name);
     }
