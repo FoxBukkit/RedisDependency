@@ -135,6 +135,23 @@ public class RedisManager {
         throw new PoolClosedException();
     }
 
+    public long incrBy(String key, long amount) {
+        Jedis jedis = null;
+        while(running) {
+            try {
+                jedis = jedisPool.getResource();
+                long newValue = jedis.incrBy(key, amount);
+                jedisPool.returnResource(jedis);
+                return newValue;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+        throw new PoolClosedException();
+    }
+
     public void del(String key) {
         Jedis jedis = null;
         while(running) {
