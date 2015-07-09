@@ -186,6 +186,57 @@ public class RedisManager {
         throw new PoolClosedException();
     }
 
+    public Set<String> smembers(String key) {
+        Jedis jedis = null;
+        while(running) {
+            try {
+                jedis = jedisPool.getResource();
+                Set<String> range = jedis.smembers(key);
+                jedisPool.returnResource(jedis);
+                return range;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+        throw new PoolClosedException();
+    }
+
+    public long sadd(String key, String... value) {
+        Jedis jedis = null;
+        while(running) {
+            try {
+                jedis = jedisPool.getResource();
+                long ret = jedis.sadd(key, value);
+                jedisPool.returnResource(jedis);
+                return ret;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+        throw new PoolClosedException();
+    }
+
+    public long srem(String key, String... value) {
+        Jedis jedis = null;
+        while(running) {
+            try {
+                jedis = jedisPool.getResource();
+                long ret = jedis.srem(key, value);
+                jedisPool.returnResource(jedis);
+                return ret;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+        throw new PoolClosedException();
+    }
+
     public boolean hexists(String key, String index) {
         Jedis jedis = null;
         while(running) {
