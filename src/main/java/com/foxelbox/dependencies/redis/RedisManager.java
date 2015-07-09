@@ -186,6 +186,57 @@ public class RedisManager {
         throw new PoolClosedException();
     }
 
+    public Set<String> zrange(String key, long start, long end) {
+        Jedis jedis = null;
+        while(running) {
+            try {
+                jedis = jedisPool.getResource();
+                Set<String> ret = jedis.zrange(key, start, end);
+                jedisPool.returnResource(jedis);
+                return ret;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+        throw new PoolClosedException();
+    }
+
+    public long zadd(String key, double score, String value) {
+        Jedis jedis = null;
+        while(running) {
+            try {
+                jedis = jedisPool.getResource();
+                long ret = jedis.zadd(key, score, value);
+                jedisPool.returnResource(jedis);
+                return ret;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+        throw new PoolClosedException();
+    }
+
+    public long zrem(String key, String... value) {
+        Jedis jedis = null;
+        while(running) {
+            try {
+                jedis = jedisPool.getResource();
+                long ret = jedis.zrem(key, value);
+                jedisPool.returnResource(jedis);
+                return ret;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+        throw new PoolClosedException();
+    }
+
     public Set<String> smembers(String key) {
         Jedis jedis = null;
         while(running) {
