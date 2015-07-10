@@ -85,6 +85,7 @@ public class RedisManager {
 				jedisPoolConfig.setTestOnBorrow(true);
 				jedisPoolConfig.setTestOnReturn(true);
 				jedisPoolConfig.setTestWhileIdle(true);
+                jedisPoolConfig.setJmxEnabled(false);
 				jedisPool = new JedisPool(jedisPoolConfig, host, 6379, 1000, REDIS_PASSWORD, REDIS_DB);
 			}
 		});
