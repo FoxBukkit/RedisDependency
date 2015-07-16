@@ -154,30 +154,26 @@ public class CacheMap implements Map<String, String> {
 
     @Override
     public int size() {
-        synchronized (parentMap) {
-            return parentMap.size();
-        }
+        throw new RuntimeException("Not implemented");
     }
 
     @Override
     public boolean isEmpty() {
-        synchronized (parentMap) {
-            return parentMap.isEmpty();
+        synchronized (internalMap) {
+            synchronized (parentMap) {
+                return internalMap.isEmpty() && parentMap.isEmpty();
+            }
         }
     }
 
     @Override
     public boolean containsKey(Object key) {
-        synchronized (parentMap) {
-            return parentMap.containsKey(key);
-        }
+        return get(key) != null;
     }
 
     @Override
     public boolean containsValue(Object value) {
-        synchronized (parentMap) {
-            return parentMap.containsValue(value);
-        }
+        throw new RuntimeException("Not implemented");
     }
 
     @Override
