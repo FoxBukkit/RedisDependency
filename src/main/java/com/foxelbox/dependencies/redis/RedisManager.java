@@ -153,14 +153,65 @@ public class RedisManager {
         throw new PoolClosedException();
     }
 
-    public void del(String key) {
+    public String get(String key) {
         Jedis jedis = null;
         while(running) {
             try {
                 jedis = jedisPool.getResource();
-                jedis.del(key);
+                String ret = jedis.get(key);
                 jedisPool.returnResource(jedis);
-                return;
+                return ret;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+        throw new PoolClosedException();
+    }
+
+    public String set(String key, String value) {
+        Jedis jedis = null;
+        while(running) {
+            try {
+                jedis = jedisPool.getResource();
+                String ret = jedis.set(key, value);
+                jedisPool.returnResource(jedis);
+                return ret;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+        throw new PoolClosedException();
+    }
+
+    public String setex(String key, int expiry, String value) {
+        Jedis jedis = null;
+        while(running) {
+            try {
+                jedis = jedisPool.getResource();
+                String ret = jedis.setex(key, expiry, value);
+                jedisPool.returnResource(jedis);
+                return ret;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(jedis != null)
+                    jedisPool.returnBrokenResource(jedis);
+            }
+        }
+        throw new PoolClosedException();
+    }
+
+    public long del(String key) {
+        Jedis jedis = null;
+        while(running) {
+            try {
+                jedis = jedisPool.getResource();
+                long ret = jedis.del(key);
+                jedisPool.returnResource(jedis);
+                return ret;
             } catch (Exception e) {
                 e.printStackTrace();
                 if(jedis != null)
@@ -323,14 +374,14 @@ public class RedisManager {
         throw new PoolClosedException();
     }
 
-    public void hset(String key, String index, String value) {
+    public long hset(String key, String index, String value) {
         Jedis jedis = null;
         while(running) {
             try {
                 jedis = jedisPool.getResource();
-                jedis.hset(key, index, value);
+                long ret = jedis.hset(key, index, value);
                 jedisPool.returnResource(jedis);
-                return;
+                return ret;
             } catch (Exception e) {
                 e.printStackTrace();
                 if(jedis != null)
@@ -340,14 +391,14 @@ public class RedisManager {
         throw new PoolClosedException();
     }
 
-    public void hdel(String key, String index) {
+    public long hdel(String key, String index) {
         Jedis jedis = null;
         while(running) {
             try {
                 jedis = jedisPool.getResource();
-                jedis.hdel(key, index);
+                long ret = jedis.hdel(key, index);
                 jedisPool.returnResource(jedis);
-                return;
+                return ret;
             } catch (Exception e) {
                 e.printStackTrace();
                 if(jedis != null)
@@ -427,14 +478,14 @@ public class RedisManager {
         throw new PoolClosedException();
     }
 
-    public void publish(String key, String value) {
+    public long publish(String key, String value) {
         Jedis jedis = null;
         while(running) {
             try {
                 jedis = jedisPool.getResource();
-                jedis.publish(key, value);
+                long ret = jedis.publish(key, value);
                 jedisPool.returnResource(jedis);
-                return;
+                return ret;
             } catch (Exception e) {
                 e.printStackTrace();
                 if(jedis != null)
@@ -444,14 +495,14 @@ public class RedisManager {
         throw new PoolClosedException();
     }
 
-    public void lpush(String key, String... strings) {
+    public long lpush(String key, String... strings) {
         Jedis jedis = null;
         while(running) {
             try {
                 jedis = jedisPool.getResource();
-                jedis.lpush(key, strings);
+                long ret = jedis.lpush(key, strings);
                 jedisPool.returnResource(jedis);
-                return;
+                return ret;
             } catch (Exception e) {
                 e.printStackTrace();
                 if(jedis != null)
