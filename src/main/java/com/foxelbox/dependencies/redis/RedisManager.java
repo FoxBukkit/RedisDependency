@@ -36,7 +36,12 @@ public class RedisManager {
     boolean running = true;
 
     public void addThread(Thread t) {
-        threads.add(t);
+        synchronized (threads) {
+            if(jedisPool == null) {
+                return;
+            }
+            threads.add(t);
+        }
     }
 
     final IThreadCreator threadCreator;
@@ -54,24 +59,30 @@ public class RedisManager {
 
     public void stop() {
         running = false;
-        if(jedisPool != null) {
-            jedisPool.destroy();
-            jedisPool = null;
+        final JedisPool _jedisPool = jedisPool;
+        jedisPool = null;
+        if(_jedisPool != null) {
+            _jedisPool.destroy();
         }
-        for(JedisPubSub jedis : subscriptions) {
-            try {
-                jedis.unsubscribe();
-            } catch (Exception e) { }
-        }
-        subscriptions.clear();
-        for(Thread t : threads) {
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        synchronized (subscriptions) {
+            for (JedisPubSub jedis : subscriptions) {
+                try {
+                    jedis.unsubscribe();
+                } catch (Exception e) {
+                }
             }
+            subscriptions.clear();
         }
-        threads.clear();
+        synchronized (threads) {
+            for (Thread t : threads) {
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            threads.clear();
+        }
     }
 
     private void createPool(final String host) {
@@ -460,20 +471,26 @@ public class RedisManager {
     }
 
     public void subscribe(String key, JedisPubSub listener) throws Exception {
-        if(jedisPool == null)
-            return;
         Jedis jedis = null;
         try {
+            synchronized (subscriptions) {
+                if(jedisPool == null) {
+                    return;
+                }
+                subscriptions.add(listener);
+            }
             jedis = jedisPool.getResource();
-            subscriptions.add(listener);
             jedis.subscribe(listener, key);
         } finally {
-            if(jedis != null && jedisPool != null)
+            if(jedis != null && jedisPool != null) {
                 jedisPool.returnBrokenResource(jedis);
+            }
             try {
                 listener.unsubscribe();
             } catch (Exception e) { }
-            subscriptions.remove(listener);
+            synchronized (subscriptions) {
+                subscriptions.remove(listener);
+            }
         }
         throw new PoolClosedException();
     }
