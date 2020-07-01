@@ -73,6 +73,7 @@
                         <email>mriq91@gmail.com</email>
                     </properties>
                     <excludes>
+                        <exclude>settings.xml</exclude>
                         <exclude>**/README</exclude>
                         <exclude>src/test/resources/**</exclude>
                         <exclude>src/main/resources/**</exclude>
@@ -113,8 +114,20 @@
     </dependencies>
     <repositories>
         <repository>
-            <id>foxelbox-repo</id>
-            <url>https://maven.doridian.net/repository/maven-snapshots/</url>
+            <id>foxelbox-configdependency-repo</id>
+            <url>https://maven.pkg.github.com/foxelbox/configdependency</url>
         </repository>
     </repositories>
+    <repositories>
+        <repository>
+            <id>foxelbox-threadingdependency-repo</id>
+            <url>https://maven.pkg.github.com/foxelbox/threadingdependency</url>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>foxelbox-redisdependency-repo</id>
+            <url>https://maven.pkg.github.com/foxelbox/redisdependency</url>
+        </repository>
+    </distributionManagement>
 </project>
