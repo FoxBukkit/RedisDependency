@@ -114,20 +114,14 @@
     </dependencies>
     <repositories>
         <repository>
-            <id>foxelbox-configdependency-repo</id>
-            <url>https://maven.pkg.github.com/foxelbox/configdependency</url>
-        </repository>
-    </repositories>
-    <repositories>
-        <repository>
-            <id>foxelbox-threadingdependency-repo</id>
-            <url>https://maven.pkg.github.com/foxelbox/threadingdependency</url>
+            <id>foxelbox-repo</id>
+            <url>https://maven.pkg.github.com/foxelbox/packages</url>
         </repository>
     </repositories>
     <distributionManagement>
         <repository>
-            <id>foxelbox-redisdependency-repo</id>
-            <url>https://maven.pkg.github.com/foxelbox/redisdependency</url>
+            <id>foxelbox-repo</id>
+            <url>https://maven.pkg.github.com/foxelbox/packages</url>
         </repository>
     </distributionManagement>
 </project>
