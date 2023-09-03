@@ -17,8 +17,8 @@
  */
 package net.doridian.foxbukkit.dependencies.redis;
 
-import com.foxelbox.dependencies.config.Configuration;
-import com.foxelbox.dependencies.threading.IThreadCreator;
+import net.doridian.foxbukkit.dependencies.config.Configuration;
+import net.doridian.foxbukkit.dependencies.threading.IThreadCreator;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -250,12 +250,12 @@ public class RedisManager {
         throw new PoolClosedException();
     }
 
-    public Set<String> zrange(String key, long start, long end) {
+    public List<String> zrange(String key, long start, long end) {
         Jedis jedis = null;
         while(running) {
             try {
                 jedis = jedisPool.getResource();
-                Set<String> ret = jedis.zrange(key, start, end);
+                List<String> ret = jedis.zrange(key, start, end);
                 jedisPool.returnResource(jedis);
                 return ret;
             } catch (Exception e) {
