@@ -114,14 +114,14 @@
     </dependencies>
     <repositories>
         <repository>
-            <id>foxelbox-repo</id>
-            <url>https://maven.pkg.github.com/foxelbox/packages</url>
+            <id>foxbukkit-repo</id>
+            <url>https://maven.pkg.github.com/foxbukkit/packages</url>
         </repository>
     </repositories>
     <distributionManagement>
         <repository>
-            <id>foxelbox-repo</id>
-            <url>https://maven.pkg.github.com/foxelbox/packages</url>
+            <id>foxbukkit-repo</id>
+            <url>https://maven.pkg.github.com/foxbukkit/packages</url>
         </repository>
     </distributionManagement>
 </project>
